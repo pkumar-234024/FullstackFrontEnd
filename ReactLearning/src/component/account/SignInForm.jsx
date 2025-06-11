@@ -9,6 +9,7 @@ const SignInForm = () => {
     password: "",
     rememberMe: false,
   });
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -18,9 +19,41 @@ const SignInForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    setError("");
+
+    try {
+      const response = await fetch(
+        "https://apibackend.runasp.net/users/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        // Store tokens in localStorage
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+        localStorage.setItem("tokenExpiry", data.expiresAt);
+        localStorage.setItem("isLoggedIn", "true");
+
+        navigate("/"); // Redirect to home page
+      } else {
+        const errorData = await response.json();
+        setError("Invalid email or password");
+        console.error("Login failed:", errorData);
+      }
+    } catch (error) {
+      setError("Something went wrong. Please try again.");
+      console.error("Error during login:", error);
+    }
   };
 
   const goToRegister = () => {
@@ -82,6 +115,8 @@ const SignInForm = () => {
             Sign In
           </button>
         </form>
+
+        {error && <div className="error-message">{error}</div>}
 
         <div className="form-footer">
           <p>

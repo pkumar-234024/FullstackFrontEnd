@@ -10,6 +10,9 @@ const RegistrationForm = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    phoneNumber: "",
+    address: "",
+    userRole: "User", // Default role
     rememberMe: false,
   });
 
@@ -21,9 +24,43 @@ const RegistrationForm = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    try {
+      const response = await fetch(
+        "https://apibackend.runasp.net/users/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            password: formData.password,
+            confirmPassword: formData.confirmPassword,
+            phoneNumber: formData.phoneNumber,
+            address: formData.address,
+            userRole: formData.userRole,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Registration successful:", data);
+        navigate("/signin");
+      } else {
+        const errorData = await response.json();
+        console.error("Registration failed:", errorData);
+        // Handle error - you might want to show an error message to the user
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      // Handle network errors
+    }
   };
 
   const goToSignIn = () => {
@@ -97,6 +134,30 @@ const RegistrationForm = () => {
                 id="confirmPassword"
                 name="confirmPassword"
                 value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="phoneNumber">Phone Number</label>
+              <input
+                type="tel"
+                id="phoneNumber"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="address">Address</label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
                 onChange={handleChange}
                 required
               />
