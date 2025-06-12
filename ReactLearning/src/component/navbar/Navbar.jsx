@@ -1,36 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../redux/slices/userSlice";
 import "./Navbar.css";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const loggedIn = localStorage.getItem("isLoggedIn") === "true";
-      const token = localStorage.getItem("accessToken");
-      const expiry = new Date(localStorage.getItem("tokenExpiry"));
-
-      if (loggedIn && token && expiry > new Date()) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkLoginStatus();
-    // Add event listener for storage changes
-    window.addEventListener("storage", checkLoginStatus);
-    return () => window.removeEventListener("storage", checkLoginStatus);
-  }, []);
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.user);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("tokenExpiry");
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
+    dispatch(logout());
     navigate("/");
   };
 
@@ -43,8 +22,11 @@ const Navbar = () => {
         <Link to="/" className="nav-link">
           Home
         </Link>
-        {isLoggedIn ? (
+        {isAuthenticated ? (
           <>
+            <Link to="/dashboard" className="nav-link">
+              Dashboard
+            </Link>
             <span className="nav-link">Logged In</span>
             <button onClick={handleLogout} className="logout-btn">
               Logout

@@ -1,15 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+} from "../../redux/slices/userSlice";
 import "./SignInForm.css";
 
 const SignInForm = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.user);
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     rememberMe: false,
   });
-  const [error, setError] = useState("");
+  const [errorMessage, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -21,7 +30,7 @@ const SignInForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    dispatch(loginStart());
 
     try {
       const response = await fetch(
@@ -38,21 +47,26 @@ const SignInForm = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Store tokens in localStorage
         localStorage.setItem("accessToken", data.accessToken);
         localStorage.setItem("refreshToken", data.refreshToken);
         localStorage.setItem("tokenExpiry", data.expiresAt);
         localStorage.setItem("isLoggedIn", "true");
 
-        navigate("/"); // Redirect to home page
+        dispatch(
+          loginSuccess({
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken,
+            user: { email: formData.email },
+          })
+        );
+
+        navigate("/");
       } else {
         const errorData = await response.json();
-        setError("Invalid email or password");
-        console.error("Login failed:", errorData);
+        dispatch(loginFailure(errorData.message || "Login failed"));
       }
     } catch (error) {
-      setError("Something went wrong. Please try again.");
-      console.error("Error during login:", error);
+      dispatch(loginFailure("Something went wrong. Please try again."));
     }
   };
 
@@ -111,11 +125,12 @@ const SignInForm = () => {
             </div>
           </div>
 
-          <button type="submit" className="submit-btn">
-            Sign In
+          <button type="submit" className="submit-btn" disabled={loading}>
+            {loading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
         {error && <div className="error-message">{error}</div>}
 
         <div className="form-footer">

@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  registrationStart,
+  registrationSuccess,
+  registrationFailure,
+} from "../../redux/slices/userSlice";
 import "./RegistrationForm.css";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -26,6 +34,8 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    dispatch(registrationStart());
+
     try {
       const response = await fetch(
         "https://apibackend.runasp.net/users/create",
@@ -49,17 +59,16 @@ const RegistrationForm = () => {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        console.log("Registration successful:", data);
+        dispatch(registrationSuccess());
         navigate("/signin");
       } else {
         const errorData = await response.json();
-        console.error("Registration failed:", errorData);
-        // Handle error - you might want to show an error message to the user
+        dispatch(
+          registrationFailure(errorData.message || "Registration failed")
+        );
       }
     } catch (error) {
-      console.error("Error during registration:", error);
-      // Handle network errors
+      dispatch(registrationFailure("Something went wrong. Please try again."));
     }
   };
 
