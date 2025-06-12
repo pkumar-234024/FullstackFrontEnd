@@ -24,7 +24,7 @@ function App() {
           <Route path="/register" element={<RegistrationForm />} />
           <Route path="/signin" element={<SignInForm />} />
           <Route
-            path="/dashboard"
+            path="/dashboard/*"
             element={
               isAuthenticated ? <Dashboard /> : <Navigate to="/signin" />
             }

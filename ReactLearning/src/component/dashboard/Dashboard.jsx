@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { NavLink, Route, Routes } from "react-router-dom";
+import DashboardHome from "./pages/DashboardHome";
+import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -36,38 +42,38 @@ const Dashboard = () => {
     },
   ];
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
+  const navItems = [
+    { path: "", icon: "fa-home", label: "Dashboard", exact: true },
+    { path: "projects", icon: "fa-project-diagram", label: "Projects" },
+    { path: "tasks", icon: "fa-tasks", label: "Tasks" },
+    { path: "reports", icon: "fa-chart-bar", label: "Reports" },
+    { path: "settings", icon: "fa-cog", label: "Settings" },
+  ];
 
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className={`sidebar ${isSidebarOpen ? "open" : "closed"}`}>
-        <button className="sidebar-toggle" onClick={toggleSidebar}>
+        <button
+          className="sidebar-toggle"
+          onClick={() => setSidebarOpen(!isSidebarOpen)}
+        >
           {isSidebarOpen ? "←" : "→"}
         </button>
         <nav className="sidebar-nav">
-          <a href="#" className="nav-item active">
-            <i className="fas fa-home"></i>
-            <span>Dashboard</span>
-          </a>
-          <a href="#" className="nav-item">
-            <i className="fas fa-project-diagram"></i>
-            <span>Projects</span>
-          </a>
-          <a href="#" className="nav-item">
-            <i className="fas fa-tasks"></i>
-            <span>Tasks</span>
-          </a>
-          <a href="#" className="nav-item">
-            <i className="fas fa-chart-bar"></i>
-            <span>Reports</span>
-          </a>
-          <a href="#" className="nav-item">
-            <i className="fas fa-cog"></i>
-            <span>Settings</span>
-          </a>
+          {navItems.map((item) => (
+            <NavLink
+              key={item.label}
+              to={`/dashboard/${item.path}`}
+              className={({ isActive }) =>
+                `nav-item ${isActive ? "active" : ""}`
+              }
+              end={item.exact}
+            >
+              <i className={`fas ${item.icon}`}></i>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
         </nav>
       </aside>
 
@@ -91,67 +97,19 @@ const Dashboard = () => {
           </div>
         </nav>
 
-        {/* Dashboard Content */}
-        <div className="dashboard-content">
-          <header className="welcome-section">
-            <h1>Hello, {user?.email?.split("@")[0] || "User"}!</h1>
-            <p>Here's your progress for today</p>
-          </header>
-
-          {/* Project Summary Cards */}
-          <section className="project-summary">
-            <h2>Active Projects</h2>
-            <div className="project-cards">
-              {projects.map((project) => (
-                <div key={project.id} className="project-card">
-                  <h3>{project.name}</h3>
-                  <div className="progress-bar">
-                    <div
-                      className="progress"
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
-                  </div>
-                  <div className="project-stats">
-                    <span>
-                      {project.completed}/{project.tasks} tasks
-                    </span>
-                    <span>{project.progress}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Task List */}
-          <section className="task-list">
-            <h2>Recent Tasks</h2>
-            <div className="task-table">
-              {tasks.map((task) => (
-                <div key={task.id} className="task-item">
-                  <label className="task-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={task.status === "Completed"}
-                      onChange={() => {}}
-                    />
-                    <span className="checkmark"></span>
-                  </label>
-                  <div className="task-info">
-                    <h4>{task.title}</h4>
-                    <span>{task.project}</span>
-                  </div>
-                  <div className="task-due-date">
-                    Due: {new Date(task.dueDate).toLocaleDateString()}
-                  </div>
-                  <button className="timer-btn">
-                    <i className="fas fa-play"></i>
-                    Start Timer
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
+        {/* Dashboard Content with Routes */}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <DashboardHome projects={projects} tasks={tasks} user={user} />
+            }
+          />
+          <Route path="projects" element={<Projects />} />
+          <Route path="tasks" element={<Tasks />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="settings" element={<Settings />} />
+        </Routes>
       </main>
     </div>
   );
